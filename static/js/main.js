@@ -273,16 +273,21 @@ function loadBaccaratData() {
         })
         .then(data => {
             console.log('API 응답 데이터:', data);
-            if (data.success && data.data && data.data.length > 0) {
-                // latestData 업데이트
-                latestData = data.data.map(item => ({
-                    ...item,
-                    time: item.time // 이미 문자열로 변환됨
-                }));
-                
-                console.log('데이터 로드 완료, 보드 렌더링 시작. 데이터 개수:', latestData.length);
-                renderBaccaratBoard(latestData);
-                lastUpdateElement.textContent = `마지막 업데이트: ${new Date().toLocaleTimeString('ko-KR')}`;
+            if (data.success) {
+                if (data.data && data.data.length > 0) {
+                    // latestData 업데이트
+                    latestData = data.data.map(item => ({
+                        ...item,
+                        time: item.time // 이미 문자열로 변환됨
+                    }));
+                    
+                    console.log('데이터 로드 완료, 보드 렌더링 시작. 데이터 개수:', latestData.length);
+                    renderBaccaratBoard(latestData);
+                    lastUpdateElement.textContent = `마지막 업데이트: ${new Date().toLocaleTimeString('ko-KR')}`;
+                } else {
+                    console.warn('데이터가 비어있습니다:', data);
+                    boardElement.innerHTML = '<div class="loading">데이터가 없습니다.<br><small>잠시 후 다시 시도해주세요.</small></div>';
+                }
             } else {
                 console.error('API 응답 오류:', data);
                 const errorMsg = data.error || '데이터를 불러올 수 없습니다';

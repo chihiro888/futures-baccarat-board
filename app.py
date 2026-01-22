@@ -29,23 +29,37 @@ def api_baccarat():
     try:
         limit = int(os.environ.get('BACCARAT_LIMIT', 100))
         interval = request.args.get('interval', '1m')  # 기본값: 1분
+        
+        # interval 검증
+        valid_intervals = ['1m', '3m', '5m', '15m', '30m', '1h', '2h', '4h', '6h', '8h', '12h', '1d']
+        if interval not in valid_intervals:
+            print(f"잘못된 interval: {interval}, 기본값 1m 사용")
+            interval = '1m'
+        
         print(f"API 요청: interval={interval}, limit={limit}")
         
         results = get_baccarat_results("BTCUSDT", limit, interval)
         print(f"데이터 가져옴: {len(results)}개")
         
+        # 빈 데이터도 정상 응답으로 처리 (500 대신 200)
         if not results:
             print("경고: 결과 데이터가 비어있습니다")
             return jsonify({
-                'success': False,
+                'success': True,
                 'error': '데이터를 가져올 수 없습니다',
                 'data': [],
                 'count': 0
-            }), 500
+            })
         
         # JSON 직렬화를 위해 datetime을 문자열로 변환
-        for result in results:
-            result['time'] = result['time'].strftime('%Y-%m-%d %H:%M:%S')
+        try:
+            for result in results:
+                if isinstance(result['time'], datetime):
+                    result['time'] = result['time'].strftime('%Y-%m-%d %H:%M:%S')
+        except Exception as e:
+            print(f"시간 변환 오류: {e}")
+            import traceback
+            traceback.print_exc()
         
         return jsonify({
             'success': True,
