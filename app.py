@@ -26,19 +26,42 @@ def index():
 def api_baccarat():
     """바카라 결과 API"""
     from flask import request
-    limit = int(os.environ.get('BACCARAT_LIMIT', 100))
-    interval = request.args.get('interval', '1m')  # 기본값: 1분
-    results = get_baccarat_results("BTCUSDT", limit, interval)
-    
-    # JSON 직렬화를 위해 datetime을 문자열로 변환
-    for result in results:
-        result['time'] = result['time'].strftime('%Y-%m-%d %H:%M:%S')
-    
-    return jsonify({
-        'success': True,
-        'data': results,
-        'count': len(results)
-    })
+    try:
+        limit = int(os.environ.get('BACCARAT_LIMIT', 100))
+        interval = request.args.get('interval', '1m')  # 기본값: 1분
+        print(f"API 요청: interval={interval}, limit={limit}")
+        
+        results = get_baccarat_results("BTCUSDT", limit, interval)
+        print(f"데이터 가져옴: {len(results)}개")
+        
+        if not results:
+            print("경고: 결과 데이터가 비어있습니다")
+            return jsonify({
+                'success': False,
+                'error': '데이터를 가져올 수 없습니다',
+                'data': [],
+                'count': 0
+            }), 500
+        
+        # JSON 직렬화를 위해 datetime을 문자열로 변환
+        for result in results:
+            result['time'] = result['time'].strftime('%Y-%m-%d %H:%M:%S')
+        
+        return jsonify({
+            'success': True,
+            'data': results,
+            'count': len(results)
+        })
+    except Exception as e:
+        print(f"API 오류: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'data': [],
+            'count': 0
+        }), 500
 
 @socketio.on('connect')
 def handle_connect():

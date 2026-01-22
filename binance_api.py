@@ -24,9 +24,16 @@ def get_klines(symbol: str = "BTCUSDT", interval: str = "1m", limit: int = 100) 
     }
     
     try:
+        print(f"바이낸스 API 요청: {url}, params={params}")
         response = requests.get(url, params=params, timeout=10)
+        print(f"응답 상태 코드: {response.status_code}")
         response.raise_for_status()
         data = response.json()
+        print(f"받은 데이터 개수: {len(data)}")
+        
+        if not data:
+            print("경고: 바이낸스 API에서 빈 데이터 반환")
+            return []
         
         # 데이터 포맷 변환
         klines = []
@@ -42,9 +49,17 @@ def get_klines(symbol: str = "BTCUSDT", interval: str = "1m", limit: int = 100) 
                 "datetime": datetime.fromtimestamp(kline[0] / 1000)
             })
         
+        print(f"변환된 klines 개수: {len(klines)}")
         return klines
     except requests.exceptions.RequestException as e:
         print(f"바이낸스 API 요청 오류: {e}")
+        import traceback
+        traceback.print_exc()
+        return []
+    except Exception as e:
+        print(f"바이낸스 API 처리 오류: {e}")
+        import traceback
+        traceback.print_exc()
         return []
 
 def calculate_baccarat_result(open_price: float, close_price: float) -> str:

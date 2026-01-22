@@ -266,11 +266,14 @@ function loadBaccaratData() {
     fetch(url)
         .then(response => {
             console.log('API 응답 상태:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
             return response.json();
         })
         .then(data => {
             console.log('API 응답 데이터:', data);
-            if (data.success && data.data) {
+            if (data.success && data.data && data.data.length > 0) {
                 // latestData 업데이트
                 latestData = data.data.map(item => ({
                     ...item,
@@ -282,12 +285,13 @@ function loadBaccaratData() {
                 lastUpdateElement.textContent = `마지막 업데이트: ${new Date().toLocaleTimeString('ko-KR')}`;
             } else {
                 console.error('API 응답 오류:', data);
-                boardElement.innerHTML = '<div class="loading">데이터를 불러올 수 없습니다.</div>';
+                const errorMsg = data.error || '데이터를 불러올 수 없습니다';
+                boardElement.innerHTML = `<div class="loading">${errorMsg}<br><small>서버 로그를 확인해주세요.</small></div>`;
             }
         })
         .catch(error => {
             console.error('API 호출 오류:', error);
-            boardElement.innerHTML = '<div class="loading">오류가 발생했습니다.</div>';
+            boardElement.innerHTML = `<div class="loading">오류가 발생했습니다: ${error.message}<br><small>브라우저 콘솔과 서버 로그를 확인해주세요.</small></div>`;
         });
 }
 
