@@ -65,7 +65,7 @@ source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 
 # 환경 변수 설정 (선택사항)
-export PORT=9000
+export PORT=7777
 export BACCARAT_LIMIT=100
 export SECRET_KEY=your-secret-key
 

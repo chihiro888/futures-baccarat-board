@@ -13,7 +13,7 @@
      - SSH (22): 내 IP
      - HTTP (80): 0.0.0.0/0
      - HTTPS (443): 0.0.0.0/0
-     - Custom TCP (9000): 0.0.0.0/0 (임시, 나중에 제거)
+     - Custom TCP (7777): 0.0.0.0/0 (임시, 나중에 제거)
 
 ### 1.2 인스턴스 연결
 ```bash
@@ -88,7 +88,7 @@ User=ubuntu
 Group=ubuntu
 WorkingDirectory=/opt/futures-baccarat-board
 Environment="PATH=/opt/futures-baccarat-board/venv/bin"
-Environment="PORT=9000"
+Environment="PORT=7777"
 Environment="FLASK_DEBUG=false"
 Environment="BACCARAT_LIMIT=100"
 Environment="SECRET_KEY=your-secret-key-here"
@@ -127,7 +127,7 @@ server {
     server_name your-domain.com;  # 또는 EC2 퍼블릭 IP
 
     location / {
-        proxy_pass http://127.0.0.1:9000;
+        proxy_pass http://127.0.0.1:7777;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
@@ -207,13 +207,13 @@ sudo journalctl -u futures-baccarat-board -n 50
 
 ### 포트가 이미 사용 중일 때
 ```bash
-sudo lsof -i :9000
-sudo netstat -tulpn | grep 9000
+sudo lsof -i :7777
+sudo netstat -tulpn | grep 7777
 ```
 
 ### Nginx 502 에러
 - 애플리케이션이 실행 중인지 확인: `sudo systemctl status futures-baccarat-board`
-- 포트 확인: `curl http://127.0.0.1:9000`
+- 포트 확인: `curl http://127.0.0.1:7777`
 
 ### Binance API 451 에러
 - EC2 리전이 Binance에서 제한된 지역일 수 있습니다
@@ -223,7 +223,7 @@ sudo netstat -tulpn | grep 9000
 
 - [ ] SSH 키 파일 권한 설정: `chmod 400 your-key.pem`
 - [ ] SECRET_KEY를 강력한 랜덤 문자열로 변경
-- [ ] 불필요한 포트(9000) 방화벽에서 제거
+- [ ] 불필요한 포트(7777) 방화벽에서 제거
 - [ ] 정기적인 시스템 업데이트: `sudo apt update && sudo apt upgrade`
 - [ ] 로그 로테이션 설정
 

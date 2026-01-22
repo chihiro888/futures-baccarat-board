@@ -10,7 +10,7 @@ User=ubuntu
 Group=ubuntu
 WorkingDirectory=/opt/futures-baccarat-board
 Environment="PATH=/opt/futures-baccarat-board/venv/bin"
-Environment="PORT=9000"
+Environment="PORT=7777"
 Environment="FLASK_DEBUG=false"
 Environment="BACCARAT_LIMIT=100"
 Environment="SECRET_KEY=CHANGE_THIS_TO_RANDOM_STRING"

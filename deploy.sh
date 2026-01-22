@@ -1,5 +1,5 @@
 #!/bin/bash
-# EC2 배포 스크립트
+# EC2 배포 스크립트 (PM2 또는 systemd)
 
 echo "Starting deployment..."
 
@@ -17,12 +17,16 @@ git pull
 echo "Installing dependencies..."
 pip install -r requirements.txt
 
-# 서비스 재시작
-echo "Restarting service..."
-sudo systemctl restart futures-baccarat-board
-
-# 서비스 상태 확인
-sleep 2
-sudo systemctl status futures-baccarat-board --no-pager
+# PM2 사용 여부 확인
+if command -v pm2 &> /dev/null && pm2 list | grep -q "futures-baccarat-board"; then
+    echo "Restarting with PM2..."
+    pm2 restart futures-baccarat-board
+    pm2 status
+else
+    echo "Restarting with systemd..."
+    sudo systemctl restart futures-baccarat-board
+    sleep 2
+    sudo systemctl status futures-baccarat-board --no-pager
+fi
 
 echo "Deployment completed!"
