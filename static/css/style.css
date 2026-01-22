@@ -234,8 +234,15 @@ main {
 
 .info {
     margin-top: 20px;
+    margin-left: 20px;
+    margin-right: 20px;
     padding-top: 20px;
     border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
 }
 
 .legend {
@@ -271,6 +278,35 @@ main {
     background: #e53e3e;
 }
 
+.timeframe-selector {
+    display: flex;
+    gap: 10px;
+    margin-left: auto;
+    align-items: center;
+}
+
+.timeframe-btn {
+    padding: 8px 16px;
+    border: 1px solid #d1d5db;
+    background: white;
+    color: #333;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.timeframe-btn:hover {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+}
+
+.timeframe-btn.active {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
 footer {
     text-align: center;
     padding: 20px;
@@ -291,8 +327,12 @@ footer .last-update {
         font-size: 2rem;
     }
     
+    .container {
+        padding: 0;
+    }
+    
     main {
-        padding: 20px;
+        padding-bottom: 20px;
     }
     
     .baccarat-cell {

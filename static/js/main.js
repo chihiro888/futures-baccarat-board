@@ -2,6 +2,15 @@
 let tradingViewWidget = null;
 let socket = null;
 let latestData = [];
+let currentTimeframe = '1m'; // 기본 타임프레임
+
+// 타임프레임 매핑 (Binance interval -> TradingView interval)
+const timeframeMap = {
+    '1m': '1',
+    '5m': '5',
+    '15m': '15',
+    '1h': '60'
+};
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Futures Baccarat Board loaded successfully!');
@@ -14,6 +23,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // SocketIO 연결
     initWebSocket();
+    
+    // 타임프레임 버튼 이벤트 리스너
+    initTimeframeButtons();
 });
 
 function initWebSocket() {
@@ -91,10 +103,11 @@ function removeTopLayoutArea() {
 function initTradingViewChart() {
     // TradingView 차트 초기화
     if (typeof TradingView !== 'undefined') {
+        const tvInterval = timeframeMap[currentTimeframe] || '1';
         tradingViewWidget = new TradingView.widget({
             "autosize": true,
             "symbol": "BINANCE:BTCUSDT",
-            "interval": "1",
+            "interval": tvInterval,
             "timezone": "Asia/Seoul",
             "theme": "light",
             "style": "1",
@@ -138,15 +151,125 @@ function initTradingViewChart() {
     }
 }
 
+function initTimeframeButtons() {
+    const buttons = document.querySelectorAll('.timeframe-btn');
+    console.log('타임프레임 버튼 찾기:', buttons.length);
+    if (buttons.length === 0) {
+        console.error('타임프레임 버튼을 찾을 수 없습니다!');
+        return;
+    }
+    buttons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const interval = this.getAttribute('data-interval');
+            console.log('타임프레임 버튼 클릭:', interval);
+            changeTimeframe(interval);
+        });
+    });
+    console.log('타임프레임 버튼 이벤트 리스너 등록 완료');
+}
+
+function changeTimeframe(interval) {
+    console.log('changeTimeframe 호출:', interval, '현재:', currentTimeframe);
+    if (currentTimeframe === interval) {
+        console.log('같은 타임프레임이므로 변경하지 않음');
+        return;
+    }
+    
+    currentTimeframe = interval;
+    console.log('타임프레임 변경됨:', currentTimeframe);
+    
+    // 버튼 활성화 상태 업데이트
+    document.querySelectorAll('.timeframe-btn').forEach(btn => {
+        if (btn.getAttribute('data-interval') === interval) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    
+    // 웹소켓 재연결 (서버에 타임프레임 변경 알림)
+    if (socket) {
+        console.log('웹소켓에 타임프레임 변경 알림:', interval);
+        socket.emit('change_timeframe', { interval: interval });
+    } else {
+        console.warn('웹소켓이 연결되지 않았습니다');
+    }
+    
+    // TradingView 차트 재생성 (더 확실한 방법)
+    destroyTradingViewWidget();
+    setTimeout(() => {
+        initTradingViewChart();
+    }, 100);
+    
+    // 데이터 다시 로드
+    console.log('데이터 다시 로드 시작');
+    loadBaccaratData();
+}
+
+function updateTradingViewInterval(interval) {
+    console.log('updateTradingViewInterval 호출:', interval, 'widget:', tradingViewWidget);
+    if (tradingViewWidget) {
+        const tvInterval = timeframeMap[interval] || '1';
+        console.log('TradingView interval 변경 시도:', interval, '->', tvInterval);
+        try {
+            // TradingView 위젯의 setSymbol 메서드 사용
+            if (typeof tradingViewWidget.setSymbol === 'function') {
+                tradingViewWidget.setSymbol('BINANCE:BTCUSDT', tvInterval, () => {
+                    console.log(`TradingView 차트 interval 변경 완료: ${interval} (${tvInterval})`);
+                });
+            } else {
+                // setSymbol이 없으면 위젯을 재생성
+                console.log('setSymbol 메서드가 없어 위젯을 재생성합니다');
+                destroyTradingViewWidget();
+                initTradingViewChart();
+            }
+        } catch (error) {
+            console.error('TradingView interval 변경 오류:', error);
+            // 오류 발생 시 위젯 재생성
+            destroyTradingViewWidget();
+            initTradingViewChart();
+        }
+    } else {
+        console.warn('TradingView 위젯이 아직 초기화되지 않았습니다. 재시도합니다...');
+        // 위젯이 없으면 재초기화 시도
+        setTimeout(() => {
+            initTradingViewChart();
+            setTimeout(() => updateTradingViewInterval(interval), 1000);
+        }, 100);
+    }
+}
+
+function destroyTradingViewWidget() {
+    if (tradingViewWidget) {
+        try {
+            const chartContainer = document.getElementById('tradingview_chart');
+            if (chartContainer) {
+                chartContainer.innerHTML = '';
+            }
+            tradingViewWidget = null;
+        } catch (error) {
+            console.error('TradingView 위젯 제거 오류:', error);
+        }
+    }
+}
+
 function loadBaccaratData() {
     const boardElement = document.getElementById('baccaratBoard');
     const lastUpdateElement = document.getElementById('lastUpdate');
     
     boardElement.innerHTML = '<div class="loading">데이터를 불러오는 중...</div>';
     
-    fetch('/api/baccarat')
-        .then(response => response.json())
+    // 타임프레임 파라미터 추가
+    const url = `/api/baccarat?interval=${currentTimeframe}`;
+    console.log('API 호출:', url);
+    
+    fetch(url)
+        .then(response => {
+            console.log('API 응답 상태:', response.status);
+            return response.json();
+        })
         .then(data => {
+            console.log('API 응답 데이터:', data);
             if (data.success && data.data) {
                 // latestData 업데이트
                 latestData = data.data.map(item => ({
@@ -154,14 +277,16 @@ function loadBaccaratData() {
                     time: item.time // 이미 문자열로 변환됨
                 }));
                 
+                console.log('데이터 로드 완료, 보드 렌더링 시작. 데이터 개수:', latestData.length);
                 renderBaccaratBoard(latestData);
                 lastUpdateElement.textContent = `마지막 업데이트: ${new Date().toLocaleTimeString('ko-KR')}`;
             } else {
+                console.error('API 응답 오류:', data);
                 boardElement.innerHTML = '<div class="loading">데이터를 불러올 수 없습니다.</div>';
             }
         })
         .catch(error => {
-            console.error('Error:', error);
+            console.error('API 호출 오류:', error);
             boardElement.innerHTML = '<div class="loading">오류가 발생했습니다.</div>';
         });
 }

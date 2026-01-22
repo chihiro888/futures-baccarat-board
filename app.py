@@ -25,8 +25,10 @@ def index():
 @app.route('/api/baccarat')
 def api_baccarat():
     """바카라 결과 API"""
+    from flask import request
     limit = int(os.environ.get('BACCARAT_LIMIT', 100))
-    results = get_baccarat_results("BTCUSDT", limit)
+    interval = request.args.get('interval', '1m')  # 기본값: 1분
+    results = get_baccarat_results("BTCUSDT", limit, interval)
     
     # JSON 직렬화를 위해 datetime을 문자열로 변환
     for result in results:
@@ -49,13 +51,30 @@ def handle_disconnect():
     """클라이언트 연결 해제 시"""
     print('클라이언트 연결 해제됨')
 
+@socketio.on('change_timeframe')
+def handle_change_timeframe(data):
+    """타임프레임 변경 요청"""
+    global binance_ws
+    interval = data.get('interval', '1m')
+    print(f'타임프레임 변경 요청: {interval}')
+    
+    # 기존 웹소켓 중지
+    if binance_ws:
+        binance_ws.stop()
+    
+    # 새로운 타임프레임으로 웹소켓 재시작
+    binance_ws = BinanceWebSocket(symbol="btcusdt", interval=interval, callback=on_kline_update)
+    binance_ws.start()
+    
+    emit('timeframe_changed', {'interval': interval})
+
 @app.route('/health')
 def health():
     return {'status': 'ok'}, 200
 
 if __name__ == '__main__':
-    # 바이낸스 웹소켓 시작
-    binance_ws = BinanceWebSocket(symbol="btcusdt", callback=on_kline_update)
+    # 바이낸스 웹소켓 시작 (기본: 1분봉)
+    binance_ws = BinanceWebSocket(symbol="btcusdt", interval="1m", callback=on_kline_update)
     binance_ws.start()
     
     port = int(os.environ.get('PORT', 9000))

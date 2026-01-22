@@ -71,18 +71,19 @@ def calculate_baccarat_result(open_price: float, close_price: float) -> str:
         # 같으면 이전 결과 유지 (기본값: P)
         return "P"  # Player
 
-def get_baccarat_results(symbol: str = "BTCUSDT", limit: int = 100) -> List[Dict]:
+def get_baccarat_results(symbol: str = "BTCUSDT", limit: int = 100, interval: str = "1m") -> List[Dict]:
     """
     바이낸스 데이터를 가져와서 바카라 결과로 변환합니다.
     
     Args:
         symbol: 거래 쌍
         limit: 가져올 데이터 개수
+        interval: 시간 간격 (1m, 5m, 15m, 1h 등)
     
     Returns:
         바카라 결과 리스트
     """
-    klines = get_klines(symbol, "1m", limit)
+    klines = get_klines(symbol, interval, limit)
     results = []
     prev_result = "P"  # 이전 결과 추적 (같은 경우 사용)
     

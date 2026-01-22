@@ -6,8 +6,9 @@ from datetime import datetime
 from typing import Callable, Optional
 
 class BinanceWebSocket:
-    def __init__(self, symbol: str = "btcusdt", callback: Optional[Callable] = None):
+    def __init__(self, symbol: str = "btcusdt", interval: str = "1m", callback: Optional[Callable] = None):
         self.symbol = symbol.lower()
+        self.interval = interval.lower()
         self.callback = callback
         self.ws = None
         self.running = False
@@ -59,7 +60,7 @@ class BinanceWebSocket:
     
     def connect(self):
         """웹소켓 연결"""
-        stream = f"{self.symbol}@kline_1m"
+        stream = f"{self.symbol}@kline_{self.interval}"
         url = f"wss://stream.binance.com:9443/ws/{stream}"
         
         self.ws = websocket.WebSocketApp(
