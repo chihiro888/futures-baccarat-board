@@ -7,7 +7,7 @@
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     line-height: 1.6;
-    color: #333;
+    color: #e5e5e5;
     background: #000000;
     min-height: 100vh;
 }
@@ -32,11 +32,11 @@ header h1 {
 }
 
 main {
-    background: white;
+    background: #1a1a1a;
     border-radius: 10px;
     padding: 0 0 20px 0;
     /* margin: 20px 0; */
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
 .controls {
@@ -68,14 +68,14 @@ main {
 }
 
 .last-update {
-    color: #666;
+    color: #999;
     font-size: 0.9rem;
 }
 
 .chart-container {
     margin: 20px 0;
     padding: 0;
-    background: #f8f9fa;
+    background: #1a1a1a;
     border-radius: 8px;
     height: 500px;
     position: relative;
@@ -101,7 +101,7 @@ main {
 .baccarat-board {
     display: inline-block;
     border-radius: 8px;
-    background: #ffffff;
+    background: #1a1a1a;
     min-width: 100%;
 }
 
@@ -109,16 +109,16 @@ main {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
-    border: 1px solid #a1a1a1;
+    border: 1px solid #404040;
     border-radius: 4px;
-    background: #ffffff;
+    background: #2a2a2a;
     position: relative;
     table-layout: fixed;
 }
 
 .baccarat-table td {
     padding: 0;
-    border: 1px solid #a1a1a1;
+    border: 1px solid #404040;
     text-align: center;
     vertical-align: middle;
     width: calc(100% / 26);
@@ -126,7 +126,7 @@ main {
     padding-bottom: calc(100% / 26);
     position: relative;
     box-sizing: border-box;
-    background: #ffffff;
+    background: #1a1a1a;
     overflow: hidden;
 }
 
@@ -168,9 +168,9 @@ main {
 .cell-info {
     margin-top: 20px;
     padding: 20px;
-    background: #f8f9fa;
+    background: #2a2a2a;
     border-radius: 8px;
-    border: 2px solid #e2e8f0;
+    border: 2px solid #404040;
 }
 
 .cell-info-content {
@@ -183,7 +183,7 @@ main {
 .cell-info-content p {
     margin: 0;
     padding: 8px 0;
-    color: #333;
+    color: #e5e5e5;
 }
 
 .cell-info-content .info-label {
@@ -193,15 +193,15 @@ main {
 }
 
 .cell-info-content .info-value {
-    color: #555;
+    color: #ccc;
 }
 
 .baccarat-cell.short {
-    background: #3182ce;
+    background: #FF043C;
 }
 
 .baccarat-cell.long {
-    background: #e53e3e;
+    background: #009C80;
 }
 
 .baccarat-cell.tie {
@@ -218,11 +218,11 @@ main {
 }
 
 .baccarat-cell.short .dot {
-    background: #e53e3e;
+    background: #FF043C;
 }
 
 .baccarat-cell.long .dot {
-    background: #3182ce;
+    background: #009C80;
 }
 
 .loading {
@@ -237,7 +237,7 @@ main {
     margin-left: 20px;
     margin-right: 20px;
     padding-top: 20px;
-    border-top: 1px solid #e2e8f0;
+    border-top: 1px solid #404040;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -256,6 +256,7 @@ main {
     display: flex;
     align-items: center;
     gap: 10px;
+    color: #e5e5e5;
 }
 
 .legend-circle {
@@ -271,11 +272,11 @@ main {
 }
 
 .legend-circle.short {
-    background: #3182ce;
+    background: #FF043C;
 }
 
 .legend-circle.long {
-    background: #e53e3e;
+    background: #009C80;
 }
 
 .timeframe-selector {
@@ -287,9 +288,9 @@ main {
 
 .timeframe-btn {
     padding: 8px 16px;
-    border: 1px solid #d1d5db;
-    background: white;
-    color: #333;
+    border: 1px solid #404040;
+    background: #2a2a2a;
+    color: #e5e5e5;
     border-radius: 4px;
     cursor: pointer;
     font-size: 0.9rem;
@@ -297,8 +298,8 @@ main {
 }
 
 .timeframe-btn:hover {
-    background: #f3f4f6;
-    border-color: #9ca3af;
+    background: #333;
+    border-color: #555;
 }
 
 .timeframe-btn.active {

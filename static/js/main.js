@@ -109,10 +109,10 @@ function initTradingViewChart() {
             "symbol": "BINANCE:BTCUSDT",
             "interval": tvInterval,
             "timezone": "Asia/Seoul",
-            "theme": "light",
+            "theme": "dark",
             "style": "1",
             "locale": "kr",
-            "toolbar_bg": "#f1f3f6",
+            "toolbar_bg": "#1a1a1a",
             "enable_publishing": false,
             "hide_top_toolbar": true,
             "hide_legend": false,
@@ -554,7 +554,7 @@ function findCurrentBoardData(sortedData, boardSize) {
 function displayCellInfo(item, timeStr, col, row) {
     const cellInfoElement = document.getElementById('cellInfo');
     const resultText = item.result === 'L' ? 'Long (양봉/상승)' : 'Short (음봉/하락)';
-    const resultColor = item.result === 'L' ? '#e53e3e' : '#3182ce';
+    const resultColor = item.result === 'L' ? '#009C80' : '#FF043C';
     
     cellInfoElement.innerHTML = `
         <p><span class="info-label">위치:</span><span class="info-value">${col}x${row}</span></p>
