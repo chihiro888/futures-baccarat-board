@@ -25,8 +25,20 @@ def get_klines(symbol: str = "BTCUSDT", interval: str = "1m", limit: int = 100) 
     
     try:
         print(f"바이낸스 API 요청: {url}, params={params}")
-        response = requests.get(url, params=params, timeout=10)
+        response = requests.get(url, params=params, timeout=30)  # 타임아웃 30초로 증가
         print(f"응답 상태 코드: {response.status_code}")
+        
+        if response.status_code == 451:
+            error_data = response.json() if response.text else {}
+            error_msg = error_data.get('msg', 'Binance API 접근이 제한된 지역입니다')
+            print(f"Binance API 지역 제한 오류 (451): {error_msg}")
+            print("Railway 서버 위치가 Binance에서 제한된 지역일 수 있습니다")
+            raise Exception(f"Binance API 지역 제한: {error_msg}")
+        
+        if response.status_code != 200:
+            print(f"HTTP 오류: {response.status_code}")
+            print(f"응답 내용: {response.text[:500]}")  # 처음 500자만 출력
+        
         response.raise_for_status()
         data = response.json()
         print(f"받은 데이터 개수: {len(data)}")
@@ -51,6 +63,28 @@ def get_klines(symbol: str = "BTCUSDT", interval: str = "1m", limit: int = 100) 
         
         print(f"변환된 klines 개수: {len(klines)}")
         return klines
+    except requests.exceptions.Timeout as e:
+        print(f"바이낸스 API 타임아웃 오류: {e}")
+        import traceback
+        traceback.print_exc()
+        return []
+    except requests.exceptions.ConnectionError as e:
+        print(f"바이낸스 API 연결 오류: {e}")
+        print("인터넷 연결 또는 Binance API 서버 상태를 확인해주세요")
+        import traceback
+        traceback.print_exc()
+        return []
+    except requests.exceptions.HTTPError as e:
+        if e.response.status_code == 451:
+            error_data = e.response.json() if e.response.text else {}
+            error_msg = error_data.get('msg', 'Binance API 접근이 제한된 지역입니다')
+            print(f"Binance API 지역 제한 오류 (451): {error_msg}")
+            raise Exception(f"Binance API 지역 제한: {error_msg}")
+        print(f"바이낸스 API HTTP 오류: {e}")
+        print(f"응답 내용: {e.response.text if hasattr(e, 'response') else 'N/A'}")
+        import traceback
+        traceback.print_exc()
+        return []
     except requests.exceptions.RequestException as e:
         print(f"바이낸스 API 요청 오류: {e}")
         import traceback

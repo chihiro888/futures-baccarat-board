@@ -45,7 +45,11 @@ class BinanceWebSocket:
             print(f"웹소켓 메시지 처리 오류: {e}")
     
     def on_error(self, ws, error):
-        print(f"웹소켓 오류: {error}")
+        error_str = str(error)
+        if '451' in error_str or 'restricted location' in error_str.lower():
+            print(f"웹소켓 오류: Binance API 지역 제한 (451) - Railway 서버 위치가 제한된 지역일 수 있습니다")
+        else:
+            print(f"웹소켓 오류: {error}")
     
     def on_close(self, ws, close_status_code, close_msg):
         print("웹소켓 연결 종료")

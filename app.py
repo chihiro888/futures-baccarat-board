@@ -43,13 +43,13 @@ def api_baccarat():
         
         # 빈 데이터도 정상 응답으로 처리 (500 대신 200)
         if not results:
-            print("경고: 결과 데이터가 비어있습니다")
+            print("경고: 결과 데이터가 비어있습니다 - Binance API 호출 실패 가능성")
             return jsonify({
-                'success': True,
-                'error': '데이터를 가져올 수 없습니다',
+                'success': False,
+                'error': 'Binance API에서 데이터를 가져올 수 없습니다. Railway 서버 위치가 Binance에서 제한된 지역일 수 있습니다.',
                 'data': [],
                 'count': 0
-            })
+            }), 200  # 200으로 반환하되 success는 false
         
         # JSON 직렬화를 위해 datetime을 문자열로 변환
         try:
