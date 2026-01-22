@@ -1,0 +1,24 @@
+# Systemd 서비스 파일 예제
+# /etc/systemd/system/futures-baccarat-board.service
+
+[Unit]
+Description=Futures Baccarat Board Flask App
+After=network.target
+
+[Service]
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/opt/futures-baccarat-board
+Environment="PATH=/opt/futures-baccarat-board/venv/bin"
+Environment="PORT=9000"
+Environment="FLASK_DEBUG=false"
+Environment="BACCARAT_LIMIT=100"
+Environment="SECRET_KEY=CHANGE_THIS_TO_RANDOM_STRING"
+ExecStart=/opt/futures-baccarat-board/venv/bin/python app.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
