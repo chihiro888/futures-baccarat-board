@@ -31,13 +31,13 @@ class BinanceWebSocket:
                         "is_up": float(kline['c']) > float(kline['o'])
                     }
                     
-                    # 바카라 결과 계산
+                    # 결과 계산
                     if result["close"] > result["open"]:
-                        result["result"] = "B"  # Banker - 양봉 (상승) - 빨간색
+                        result["result"] = "L"  # Long - 양봉 (상승) - 빨간색
                     elif result["close"] < result["open"]:
-                        result["result"] = "P"  # Player - 음봉 (하락) - 파란색
+                        result["result"] = "S"  # Short - 음봉 (하락) - 파란색
                     else:
-                        result["result"] = "P"  # 기본값
+                        result["result"] = "S"  # 기본값
                     
                     if self.callback:
                         self.callback(result)

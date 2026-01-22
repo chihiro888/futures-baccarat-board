@@ -196,11 +196,11 @@ main {
     color: #555;
 }
 
-.baccarat-cell.player {
+.baccarat-cell.short {
     background: #3182ce;
 }
 
-.baccarat-cell.banker {
+.baccarat-cell.long {
     background: #e53e3e;
 }
 
@@ -217,11 +217,11 @@ main {
     right: 5px;
 }
 
-.baccarat-cell.player .dot {
+.baccarat-cell.short .dot {
     background: #e53e3e;
 }
 
-.baccarat-cell.banker .dot {
+.baccarat-cell.long .dot {
     background: #3182ce;
 }
 
@@ -270,11 +270,11 @@ main {
     font-size: 0.9rem;
 }
 
-.legend-circle.player {
+.legend-circle.short {
     background: #3182ce;
 }
 
-.legend-circle.banker {
+.legend-circle.long {
     background: #e53e3e;
 }
 

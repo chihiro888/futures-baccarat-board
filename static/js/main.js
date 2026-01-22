@@ -273,15 +273,18 @@ function loadBaccaratData() {
         })
         .then(data => {
             console.log('API 응답 데이터:', data);
+            console.log('데이터 개수:', data.data ? data.data.length : 0);
             if (data.success) {
                 if (data.data && data.data.length > 0) {
                     // latestData 업데이트
                     latestData = data.data.map(item => ({
                         ...item,
-                        time: item.time // 이미 문자열로 변환됨
+                        time: item.time, // 이미 문자열로 변환됨
+                        result: item.result // S 또는 L
                     }));
                     
                     console.log('데이터 로드 완료, 보드 렌더링 시작. 데이터 개수:', latestData.length);
+                    console.log('첫 번째 데이터 샘플:', latestData[0]);
                     renderBaccaratBoard(latestData);
                     lastUpdateElement.textContent = `마지막 업데이트: ${new Date().toLocaleTimeString('ko-KR')}`;
                 } else {
@@ -323,7 +326,7 @@ function updateChart(data) {
         const close = item.close || item.price;
         const high = item.high;
         const low = item.low;
-        const isUp = close > open || (close === open && item.result === 'B');
+        const isUp = close > open || (close === open && item.result === 'L');
         
         // 캔들스틱 데이터 저장
         candleData.push({
@@ -379,7 +382,11 @@ function renderBaccaratBoard(data) {
     // 00:01을 기준으로 보드 시작점 찾기
     const boardData = findCurrentBoardData(sortedData, boardSize);
     
+    console.log('보드 데이터 개수:', boardData ? boardData.length : 0);
+    console.log('보드 데이터 샘플:', boardData && boardData.length > 0 ? boardData[0] : null);
+    
     if (!boardData || boardData.length === 0) {
+        console.error('보드 데이터를 찾을 수 없습니다. sortedData:', sortedData.length);
         boardElement.innerHTML = '<div class="loading">보드 데이터를 찾을 수 없습니다.</div>';
         return;
     }
@@ -387,6 +394,7 @@ function renderBaccaratBoard(data) {
     // 테이블 생성
     const table = document.createElement('table');
     table.className = 'baccarat-table';
+    console.log('테이블 생성 시작, 행:', rowsPerColumn, '열:', columnsPerRow);
     
     // 데이터를 2차원 배열로 변환 (세로 방향으로 채우기)
     const tableData = [];
@@ -418,18 +426,29 @@ function renderBaccaratBoard(data) {
             
             if (item) {
                 // 결과에 따라 클래스 이름 매핑 (색상 문제 해결)
+                // 이전 데이터 호환성: P/B도 처리
                 let resultClass = '';
-                if (item.result === 'P') {
-                    resultClass = 'player';
-                } else if (item.result === 'B') {
-                    resultClass = 'banker';
+                let displayText = item.result;
+                
+                if (item.result === 'S' || item.result === 'P') {
+                    resultClass = 'short';
+                    displayText = 'S';
+                } else if (item.result === 'L' || item.result === 'B') {
+                    resultClass = 'long';
+                    displayText = 'L';
                 } else if (item.result === 'T') {
                     resultClass = 'tie';
                 }
                 
+                if (!resultClass) {
+                    console.warn('알 수 없는 result 값:', item.result);
+                    resultClass = 'short'; // 기본값
+                    displayText = 'S';
+                }
+                
                 const cell = document.createElement('div');
                 cell.className = `baccarat-cell ${resultClass}`;
-                cell.textContent = item.result;
+                cell.textContent = displayText;
                 cell.setAttribute('data-col', col);
                 cell.setAttribute('data-row', row);
                 cell.setAttribute('data-index', row * columnsPerRow + col);
@@ -450,9 +469,9 @@ function renderBaccaratBoard(data) {
                     displayCellInfo(item, timeStr, col, row);
                 });
                 
-                
                 td.appendChild(cell);
             }
+            // 빈 셀도 td는 생성해야 함 (테이블 구조 유지)
             
             tr.appendChild(td);
         }
@@ -462,6 +481,7 @@ function renderBaccaratBoard(data) {
     
     boardElement.innerHTML = '';
     boardElement.appendChild(table);
+    console.log('테이블 렌더링 완료');
 }
 
 function findCurrentBoardData(sortedData, boardSize) {
@@ -533,8 +553,8 @@ function findCurrentBoardData(sortedData, boardSize) {
 
 function displayCellInfo(item, timeStr, col, row) {
     const cellInfoElement = document.getElementById('cellInfo');
-    const resultText = item.result === 'B' ? 'Banker (양봉/상승)' : 'Player (음봉/하락)';
-    const resultColor = item.result === 'B' ? '#e53e3e' : '#3182ce';
+    const resultText = item.result === 'L' ? 'Long (양봉/상승)' : 'Short (음봉/하락)';
+    const resultColor = item.result === 'L' ? '#e53e3e' : '#3182ce';
     
     cellInfoElement.innerHTML = `
         <p><span class="info-label">위치:</span><span class="info-value">${col}x${row}</span></p>

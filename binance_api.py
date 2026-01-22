@@ -100,25 +100,25 @@ def calculate_baccarat_result(open_price: float, close_price: float) -> str:
     """
     양봉/음봉을 기준으로 바카라 결과를 계산합니다.
     
-    바카라 규칙:
-    - 양봉 (상승): 종가 > 시가 → Banker (B) - 빨간색
-    - 음봉 (하락): 종가 < 시가 → Player (P) - 파란색
-    - 같으면: 이전 결과 유지 (기본값: P)
+    규칙:
+    - 양봉 (상승): 종가 > 시가 → Long (L) - 빨간색
+    - 음봉 (하락): 종가 < 시가 → Short (S) - 파란색
+    - 같으면: 이전 결과 유지 (기본값: S)
     
     Args:
         open_price: 시가
         close_price: 종가
     
     Returns:
-        'P' (Player - 파란색), 'B' (Banker - 빨간색)
+        'S' (Short - 파란색), 'L' (Long - 빨간색)
     """
     if close_price > open_price:
-        return "B"  # Banker - 양봉 (상승) - 빨간색
+        return "L"  # Long - 양봉 (상승) - 빨간색
     elif close_price < open_price:
-        return "P"  # Player - 음봉 (하락) - 파란색
+        return "S"  # Short - 음봉 (하락) - 파란색
     else:
-        # 같으면 이전 결과 유지 (기본값: P)
-        return "P"  # Player
+        # 같으면 이전 결과 유지 (기본값: S)
+        return "S"  # Short
 
 def get_baccarat_results(symbol: str = "BTCUSDT", limit: int = 100, interval: str = "1m") -> List[Dict]:
     """
@@ -134,14 +134,14 @@ def get_baccarat_results(symbol: str = "BTCUSDT", limit: int = 100, interval: st
     """
     klines = get_klines(symbol, interval, limit)
     results = []
-    prev_result = "P"  # 이전 결과 추적 (같은 경우 사용)
+    prev_result = "S"  # 이전 결과 추적 (같은 경우 사용)
     
     for kline in klines:
         # 양봉/음봉 기준으로 결과 계산
         if kline["close"] > kline["open"]:
-            result = "B"  # Banker - 양봉 (상승) - 빨간색
+            result = "L"  # Long - 양봉 (상승) - 빨간색
         elif kline["close"] < kline["open"]:
-            result = "P"  # Player - 음봉 (하락) - 파란색
+            result = "S"  # Short - 음봉 (하락) - 파란색
         else:
             # 같으면 이전 결과 유지
             result = prev_result
