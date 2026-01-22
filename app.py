@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, send_from_directory
 from flask_socketio import SocketIO, emit
 from binance_api import get_baccarat_results
 from binance_websocket import BinanceWebSocket
@@ -21,6 +21,12 @@ def on_kline_update(data):
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/favicon.ico')
+def favicon():
+    """파비콘 요청 처리"""
+    return send_from_directory(os.path.join(app.root_path, 'static', 'images'),
+                               'chip.png', mimetype='image/png')
 
 @app.route('/api/baccarat')
 def api_baccarat():
