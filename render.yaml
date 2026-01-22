@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: futures-baccarat-board
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python app.py
+    envVars:
+      - key: PORT
+        sync: false
+      - key: BACCARAT_LIMIT
+        value: 100
+      - key: SECRET_KEY
+        generateValue: true
+      - key: FLASK_DEBUG
+        value: false
