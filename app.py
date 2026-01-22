@@ -1,8 +1,22 @@
 import os
 from flask import Flask, render_template, jsonify
+from flask_socketio import SocketIO, emit
 from binance_api import get_baccarat_results
+from binance_websocket import BinanceWebSocket
+from datetime import datetime
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'your-secret-key'
+socketio = SocketIO(app, cors_allowed_origins="*")
+
+# 웹소켓 인스턴스
+binance_ws = None
+
+def on_kline_update(data):
+    """바이낸스 웹소켓에서 받은 데이터를 클라이언트에 전송"""
+    # datetime을 문자열로 변환
+    data['time'] = data['time'].strftime('%Y-%m-%d %H:%M:%S')
+    socketio.emit('kline_update', data)
 
 @app.route('/')
 def index():
@@ -24,10 +38,25 @@ def api_baccarat():
         'count': len(results)
     })
 
+@socketio.on('connect')
+def handle_connect():
+    """클라이언트 연결 시"""
+    print('클라이언트 연결됨')
+    emit('connected', {'status': 'connected'})
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    """클라이언트 연결 해제 시"""
+    print('클라이언트 연결 해제됨')
+
 @app.route('/health')
 def health():
     return {'status': 'ok'}, 200
 
 if __name__ == '__main__':
+    # 바이낸스 웹소켓 시작
+    binance_ws = BinanceWebSocket(symbol="btcusdt", callback=on_kline_update)
+    binance_ws.start()
+    
     port = int(os.environ.get('PORT', 9000))
-    app.run(debug=True, host='0.0.0.0', port=port)
+    socketio.run(app, debug=True, host='0.0.0.0', port=port, allow_unsafe_werkzeug=True)

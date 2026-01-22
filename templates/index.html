@@ -5,22 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Futures Baccarat Board - BTC</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
 </head>
 <body>
     <div class="container">
-        <header>
+        <!-- <header>
             <h1>Futures Baccarat Board</h1>
-            <p class="subtitle">BTC/USDT 1분봉 데이터</p>
-        </header>
+        </header> -->
         <main>
-            <div class="controls">
-                <button id="refreshBtn" class="btn">새로고침</button>
-                <button id="autoRefreshBtn" class="btn">자동 새로고침</button>
-                <span id="lastUpdate" class="last-update"></span>
-            </div>
             <div class="chart-container">
-                <canvas id="priceChart"></canvas>
+                <div id="tradingview_chart"></div>
             </div>
             <div class="baccarat-board-container">
                 <div id="baccaratBoard" class="baccarat-board">
@@ -39,14 +34,14 @@
                     </div>
                 </div>
             </div>
-            <div class="cell-info">
+            <!-- <div class="cell-info">
                 <div id="cellInfo" class="cell-info-content">
-                    <p>셀에 마우스를 올리면 상세 정보가 표시됩니다.</p>
                 </div>
-            </div>
+            </div> -->
         </main>
         <footer>
-            <p>&copy; 2024 Futures Baccarat Board | Binance API</p>
+            <p>&copy; 2026 Futures Baccarat Board | Binance API</p>
+            <span id="lastUpdate" class="last-update">연결 중...</span>
         </footer>
     </div>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>

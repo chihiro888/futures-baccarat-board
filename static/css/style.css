@@ -8,7 +8,7 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     line-height: 1.6;
     color: #333;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #000000;
     min-height: 100vh;
 }
 
@@ -20,27 +20,22 @@ body {
 
 header {
     text-align: center;
-    padding: 30px 20px;
+    padding: 15px 20px;
     color: white;
 }
 
 header h1 {
-    font-size: 2.5rem;
+    font-size: 1.5rem;
     font-weight: 700;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-    margin-bottom: 10px;
-}
-
-.subtitle {
-    font-size: 1.1rem;
-    opacity: 0.9;
+    margin: 0;
 }
 
 main {
     background: white;
     border-radius: 10px;
-    padding: 30px;
-    margin: 20px 0;
+    padding: 0 0 20px 0;
+    /* margin: 20px 0; */
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
@@ -79,15 +74,23 @@ main {
 
 .chart-container {
     margin: 20px 0;
-    padding: 20px;
+    padding: 0;
     background: #f8f9fa;
     border-radius: 8px;
-    height: 400px;
+    height: 500px;
     position: relative;
 }
 
-#priceChart {
-    max-height: 400px;
+#tradingview_chart {
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* TradingView 상단 영역 숨기기 */
+#tradingview_chart .layout__area--top {
+    display: none !important;
 }
 
 .baccarat-board-container {
@@ -273,6 +276,14 @@ footer {
     padding: 20px;
     color: white;
     opacity: 0.9;
+}
+
+footer .last-update {
+    display: block;
+    margin-top: 10px;
+    color: white;
+    font-size: 0.9rem;
+    opacity: 0.8;
 }
 
 @media (max-width: 768px) {

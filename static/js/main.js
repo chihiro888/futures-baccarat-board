@@ -1,140 +1,141 @@
 // Main JavaScript file
-let autoRefreshInterval = null;
-let priceChart = null;
+let tradingViewWidget = null;
+let socket = null;
+let latestData = [];
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Futures Baccarat Board loaded successfully!');
     
-    // 차트 초기화
-    initChart();
+    // TradingView 차트 초기화
+    initTradingViewChart();
     
     // 초기 데이터 로드
     loadBaccaratData();
     
-    // 새로고침 버튼
-    document.getElementById('refreshBtn').addEventListener('click', function() {
-        loadBaccaratData();
-    });
-    
-    // 자동 새로고침 버튼
-    document.getElementById('autoRefreshBtn').addEventListener('click', function() {
-        toggleAutoRefresh();
-    });
+    // SocketIO 연결
+    initWebSocket();
 });
 
-// 캔들스틱 플러그인
-const candlestickPlugin = {
-    id: 'candlestick',
-    afterDatasetsDraw: (chart) => {
-        const ctx = chart.ctx;
-        const meta = chart.getDatasetMeta(0);
-        const candleData = chart.data.candleData;
-        
-        if (!candleData || candleData.length === 0) return;
-        
-        const xScale = chart.scales.x;
-        const yScale = chart.scales.y;
-        
-        candleData.forEach((candle, index) => {
-            if (!candle) return;
-            
-            const x = xScale.getPixelForValue(index);
-            const openY = yScale.getPixelForValue(candle.open);
-            const closeY = yScale.getPixelForValue(candle.close);
-            const highY = yScale.getPixelForValue(candle.high);
-            const lowY = yScale.getPixelForValue(candle.low);
-            
-            const isUp = candle.isUp;
-            const color = isUp ? 'rgba(220, 38, 38, 1)' : 'rgba(59, 130, 246, 1)';
-            const bodyTop = Math.min(openY, closeY);
-            const bodyBottom = Math.max(openY, closeY);
-            const bodyHeight = bodyBottom - bodyTop;
-            const barWidth = Math.max(4, (xScale.width / candleData.length) * 0.6);
-            
-            ctx.save();
-            
-            // 꼬리 그리기 (고가-저가)
-            ctx.strokeStyle = color;
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(x, highY);
-            ctx.lineTo(x, lowY);
-            ctx.stroke();
-            
-            // 몸통 그리기 (시가-종가)
-            ctx.fillStyle = color;
-            ctx.fillRect(x - barWidth / 2, bodyTop, barWidth, bodyHeight || 1);
-            
-            ctx.restore();
-        });
-    }
-};
-
-function initChart() {
-    const ctx = document.getElementById('priceChart');
+function initWebSocket() {
+    // SocketIO 연결
+    socket = io();
     
-    // 플러그인 등록
-    Chart.register(candlestickPlugin);
-    
-    priceChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: [],
-            datasets: [{
-                label: 'BTC/USDT',
-                data: [],
-                backgroundColor: 'transparent',
-                borderColor: 'transparent',
-                borderWidth: 0
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            const dataIndex = context.dataIndex;
-                            const candleData = context.chart.data.candleData[dataIndex];
-                            
-                            if (candleData) {
-                                return [
-                                    '시가: $' + candleData.open.toFixed(2),
-                                    '고가: $' + candleData.high.toFixed(2),
-                                    '저가: $' + candleData.low.toFixed(2),
-                                    '종가: $' + candleData.close.toFixed(2)
-                                ];
-                            }
-                            return '';
-                        }
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: false,
-                    ticks: {
-                        callback: function(value) {
-                            return '$' + value.toLocaleString('ko-KR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                        }
-                    }
-                },
-                x: {
-                    ticks: {
-                        maxTicksLimit: 20
-                    }
-                }
-            },
-            interaction: {
-                mode: 'index',
-                intersect: false
-            }
-        }
+    socket.on('connect', function() {
+        console.log('웹소켓 연결 성공');
+        document.getElementById('lastUpdate').textContent = '실시간 연결됨';
     });
+    
+    socket.on('disconnect', function() {
+        console.log('웹소켓 연결 해제');
+        document.getElementById('lastUpdate').textContent = '연결 해제됨';
+    });
+    
+    socket.on('kline_update', function(data) {
+        console.log('새로운 1분봉 데이터:', data);
+        handleNewKline(data);
+    });
+}
+
+function handleNewKline(data) {
+    // 새로운 데이터를 latestData에 추가
+    // time은 이미 문자열로 변환되어 있음
+    const newItem = {
+        time: data.time, // 이미 문자열
+        timestamp: data.timestamp,
+        price: data.price,
+        result: data.result,
+        open: data.open,
+        high: data.high,
+        low: data.low,
+        close: data.close,
+        volume: data.volume,
+        is_up: data.is_up
+    };
+    
+    // 기존 데이터에 추가 (중복 제거)
+    const existingIndex = latestData.findIndex(item => item.timestamp === data.timestamp);
+    if (existingIndex >= 0) {
+        latestData[existingIndex] = newItem;
+    } else {
+        latestData.push(newItem);
+    }
+    
+    // 시간순으로 정렬
+    latestData.sort((a, b) => {
+        const timeA = typeof a.time === 'string' ? new Date(a.time) : a.time;
+        const timeB = typeof b.time === 'string' ? new Date(b.time) : b.time;
+        return timeA - timeB;
+    });
+    
+    // 최근 156개만 유지 (보드 크기)
+    if (latestData.length > 156) {
+        latestData = latestData.slice(-156);
+    }
+    
+    // 보드 업데이트
+    renderBaccaratBoard(latestData);
+    
+    // 마지막 업데이트 시간 표시
+    document.getElementById('lastUpdate').textContent = `실시간 업데이트: ${new Date().toLocaleTimeString('ko-KR')}`;
+}
+
+function removeTopLayoutArea() {
+    // layout__area--top 요소 찾아서 제거
+    const topArea = document.querySelector('#tradingview_chart .layout__area--top');
+    if (topArea) {
+        topArea.style.display = 'none';
+        topArea.remove();
+    }
+}
+
+function initTradingViewChart() {
+    // TradingView 차트 초기화
+    if (typeof TradingView !== 'undefined') {
+        tradingViewWidget = new TradingView.widget({
+            "autosize": true,
+            "symbol": "BINANCE:BTCUSDT",
+            "interval": "1",
+            "timezone": "Asia/Seoul",
+            "theme": "light",
+            "style": "1",
+            "locale": "kr",
+            "toolbar_bg": "#f1f3f6",
+            "enable_publishing": false,
+            "hide_top_toolbar": true,
+            "hide_legend": false,
+            "save_image": false,
+            "container_id": "tradingview_chart",
+            "height": 500,
+            "width": "100%",
+            "studies": [],
+            "show_popup_button": false,
+            "popup_width": "1000",
+            "popup_height": "650",
+            "no_referral_id": true,
+            "referral_id": "",
+            "disabled_features": ["use_localstorage_for_settings", "volume_force_overlay"],
+            "enabled_features": ["study_templates"]
+        });
+        
+        // TradingView 차트 로드 후 상단 영역 제거
+        setTimeout(() => {
+            removeTopLayoutArea();
+            // MutationObserver로 동적으로 추가되는 요소도 감지
+            const observer = new MutationObserver(() => {
+                removeTopLayoutArea();
+            });
+            const chartContainer = document.getElementById('tradingview_chart');
+            if (chartContainer) {
+                observer.observe(chartContainer, {
+                    childList: true,
+                    subtree: true
+                });
+            }
+        }, 1000);
+    } else {
+        // TradingView 스크립트가 로드되지 않은 경우 재시도
+        setTimeout(initTradingViewChart, 100);
+    }
 }
 
 function loadBaccaratData() {
@@ -147,8 +148,13 @@ function loadBaccaratData() {
         .then(response => response.json())
         .then(data => {
             if (data.success && data.data) {
-                renderBaccaratBoard(data.data);
-                updateChart(data.data);
+                // latestData 업데이트
+                latestData = data.data.map(item => ({
+                    ...item,
+                    time: item.time // 이미 문자열로 변환됨
+                }));
+                
+                renderBaccaratBoard(latestData);
                 lastUpdateElement.textContent = `마지막 업데이트: ${new Date().toLocaleTimeString('ko-KR')}`;
             } else {
                 boardElement.innerHTML = '<div class="loading">데이터를 불러올 수 없습니다.</div>';
@@ -224,7 +230,12 @@ function renderBaccaratBoard(data) {
     }
     
     // 데이터를 시간순으로 정렬 (오래된 것부터)
-    const sortedData = [...data].sort((a, b) => new Date(a.time) - new Date(b.time));
+    // time이 문자열인 경우와 Date 객체인 경우 모두 처리
+    const sortedData = [...data].sort((a, b) => {
+        const timeA = typeof a.time === 'string' ? new Date(a.time) : a.time;
+        const timeB = typeof b.time === 'string' ? new Date(b.time) : b.time;
+        return timeA - timeB;
+    });
     
     // 그리드 생성 - 고정 크기: 세로 6줄, 가로 26줄 (총 156개)
     const rowsPerColumn = 6;  // 세로 (행)
@@ -290,7 +301,7 @@ function renderBaccaratBoard(data) {
                 cell.setAttribute('data-index', row * columnsPerRow + col);
                 
                 // 시간 정보 포맷팅
-                const date = new Date(item.time);
+                const date = typeof item.time === 'string' ? new Date(item.time) : item.time;
                 const timeStr = date.toLocaleString('ko-KR', {
                     year: 'numeric',
                     month: '2-digit',
@@ -404,19 +415,3 @@ function displayCellInfo(item, timeStr, col, row) {
     `;
 }
 
-function toggleAutoRefresh() {
-    const btn = document.getElementById('autoRefreshBtn');
-    
-    if (autoRefreshInterval) {
-        clearInterval(autoRefreshInterval);
-        autoRefreshInterval = null;
-        btn.textContent = '자동 새로고침';
-        btn.classList.remove('active');
-    } else {
-        autoRefreshInterval = setInterval(() => {
-            loadBaccaratData();
-        }, 60000); // 1분마다 새로고침
-        btn.textContent = '자동 새로고침 중...';
-        btn.classList.add('active');
-    }
-}
